@@ -57,4 +57,4 @@ class Currency
   def self.find_by_code(code)
     CURRENCIES_LIST.find { |c| c[:code] == code }
   end
-end 
+end

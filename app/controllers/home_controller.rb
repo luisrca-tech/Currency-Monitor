@@ -1,9 +1,9 @@
-require 'net/http'
-require 'json'
+require "net/http"
+require "json"
 
 class HomeController < ApplicationController
   def index
-    @selected_currencies = params[:currencies] || ["USD-BRL", "EUR-BRL", "BTC-BRL", "GBP-BRL"]
+    @selected_currencies = params[:currencies] || [ "USD-BRL", "EUR-BRL", "BTC-BRL", "GBP-BRL" ]
     @chart_data = []
 
     @selected_currencies.each do |currency_code|
