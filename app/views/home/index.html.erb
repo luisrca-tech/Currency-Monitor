@@ -1,0 +1,98 @@
+<div class="container mx-auto px-4 py-8 max-w-7xl">
+  <h1 class="text-4xl font-bold text-center mb-8 text-gray-800">Currency Exchange Monitor</h1>
+  <p class="text-xl text-center text-gray-600 mb-12">Track real-time exchange rates against Brazilian Real (BRL)</p>
+
+  <!-- Currency Filter -->
+  <div class="bg-white rounded-lg shadow-lg p-6 mb-8">
+    <h2 class="text-xl font-semibold text-gray-800 mb-4">Available Currencies</h2>
+    <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4">
+      <% Currency.all.each do |currency| %>
+        <button class="currency-filter-btn p-3 rounded-lg border border-gray-200 hover:border-blue-500 hover:bg-blue-50 transition-colors duration-200 text-left <%= @selected_currencies&.include?(currency[:code]) ? 'border-blue-500 bg-blue-50' : '' %>"
+                data-currency-code="<%= currency[:code] %>">
+          <div class="font-medium text-gray-800"><%= currency[:code] %></div>
+          <div class="text-sm text-gray-500"><%= currency[:name] %></div>
+        </button>
+      <% end %>
+    </div>
+  </div>
+
+  <!-- Charts Grid -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <% @chart_data.each do |currency| %>
+      <div class="bg-white rounded-lg shadow-lg p-6 hover:-translate-y-1 transition-transform duration-200">
+        <div class="flex justify-between items-center mb-4">
+          <div>
+            <h2 class="text-2xl font-semibold text-gray-800">
+              <%= currency[:name] %>
+              <span class="text-sm text-gray-500 ml-1">(<%= currency[:code] %>)</span>
+            </h2>
+          </div>
+          <div class="flex items-center">
+            <span class="text-3xl font-bold text-gray-900">
+              R$ <%= number_with_precision(currency[:latest_rate], precision: 4) %>
+            </span>
+            <span class="ml-2 px-3 py-1 rounded-full text-sm font-medium <%= currency[:trend] == 'up' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800' %>">
+              <%= currency[:trend] == 'up' ? '↑' : '↓' %> <%= currency[:change_percentage].abs %>%
+            </span>
+          </div>
+        </div>
+        <%= line_chart currency[:data],
+            height: "400px",
+            colors: ["#3b82f6"],
+            points: false,
+            legend: false,
+            library: {
+              scales: {
+                y: {
+                  beginAtZero: false,
+                  grid: {
+                    color: "#f3f4f6"
+                  }
+                },
+                x: {
+                  grid: {
+                    display: false
+                  }
+                }
+              }
+            } %>
+      </div>
+    <% end %>
+  </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const filterButtons = document.querySelectorAll('.currency-filter-btn');
+  
+  filterButtons.forEach(button => {
+    button.addEventListener('click', function() {
+      const currencyCode = this.dataset.currencyCode;
+      this.classList.toggle('border-blue-500');
+      this.classList.toggle('bg-blue-50');
+      
+      // Here you would typically make an AJAX call to update the charts
+      // For now, we'll just reload the page with the new selection
+      const currentUrl = new URL(window.location.href);
+      const searchParams = currentUrl.searchParams;
+      
+      if (this.classList.contains('border-blue-500')) {
+        searchParams.append('currencies[]', currencyCode);
+      } else {
+        const currencies = searchParams.getAll('currencies[]');
+        const index = currencies.indexOf(currencyCode);
+        if (index > -1) {
+          searchParams.delete('currencies[]');
+          currencies.forEach((code, i) => {
+            if (i !== index) {
+              searchParams.append('currencies[]', code);
+            }
+          });
+        }
+      }
+      
+      window.location.href = currentUrl.toString();
+    });
+  });
+});
+</script>
